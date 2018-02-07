@@ -28,13 +28,26 @@ tidy_words %>%
   coord_flip()
 
 
-ncjoy <- get_sentiments("nrc") %>% 
-  filter(sentiment == "trust")
+sents <- get_sentiments("nrc") 
 
+# bar charts for word frequency broken up by sentiments from the 
+# nrc data set 
+# It looks like time is the most common word from these sentimenets 
+# followed by surgery. Time is denoted by "anticipation" and 
+# surgery is denoted by both "fear" and "sadness"
 tidy_words %>% 
-  inner_join(ncjoy) %>% 
-  # group_by(season) %>% 
-  count(word, sort = TRUE)
+  inner_join(sents) %>% 
+  group_by(sentiment) %>% 
+  count(word, sort = TRUE) %>% 
+  top_n(20) %>% 
+  ungroup() %>% 
+  mutate(word = factor(word) %>% fct_reorder(n)) %>% 
+  ggplot(aes(word, n, fill = sentiment)) +
+  facet_wrap(~ sentiment, scales = "free_y") + 
+  geom_bar(stat = "identity") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(size = 7)) +
+  coord_flip()
 
 
 tidy_words %>% 
@@ -48,4 +61,17 @@ tidy_words %>%
   geom_col(show.legend = FALSE) + 
   facet_wrap(~season, scales = "free") +
   theme(axis.text.x = element_text(angle = 90, size = 6))
-  
+
+
+tidy_words %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(word, sentiment, sort = TRUE) %>% 
+  group_by(sentiment) %>% 
+  top_n(20) %>%
+  ungroup() %>% 
+  mutate(word = fct_reorder(word, n)) %>% 
+  ggplot(aes(word, n, fill = sentiment)) +
+  facet_wrap(~ sentiment, scales = "free_y") + 
+  geom_bar(stat = "identity") + 
+  theme_bw() + 
+  coord_flip()
