@@ -50,6 +50,8 @@ tidy_words %>%
   coord_flip()
 
 
+# this graph looks at the sentiment score for each epsiode of 
+# grey's anatomy
 tidy_words %>% 
   inner_join(get_sentiments("bing")) %>% 
   group_by(season, episode_num) %>% 
@@ -62,7 +64,9 @@ tidy_words %>%
   facet_wrap(~season, scales = "free") +
   theme(axis.text.x = element_text(angle = 90, size = 6))
 
-
+# This figure looks at the frequency of the 20 most common positive and
+# negative words in all of the seasons of grey's anatomy included in this 
+# analysis. 
 tidy_words %>% 
   inner_join(get_sentiments("bing")) %>% 
   count(word, sentiment, sort = TRUE) %>% 
@@ -75,3 +79,20 @@ tidy_words %>%
   geom_bar(stat = "identity") + 
   theme_bw() + 
   coord_flip()
+
+# this graph shows a general count of positive and negative words per season
+# it looks like every seaons has more negative words than postive
+# this is not necessarily surprising since Shonda Rhymes loves to build up 
+# the drama until the end of episodes (or sequence of episodes) before 
+# there is a happy ending (if there is one at all)
+tidy_words %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(season, sentiment) %>% 
+  arrange(season) %>% 
+  ggplot(aes(season, n, fill = sentiment)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  theme_bw()
+
+
+
+#
