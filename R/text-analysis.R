@@ -96,3 +96,49 @@ tidy_words %>%
 
 
 #
+ep_words <- tidy_words %>% 
+  group_by(season) %>% 
+  mutate(total_n = n()) %>% 
+  ungroup() %>% 
+  group_by(word, season, total_n) %>% 
+  summarize(word_count = n()) %>% 
+  arrange(desc(word_count)) %>% 
+  ungroup() %>% 
+  filter(!stringr::str_detect(word, "_"))
+
+
+ep_words %>% 
+  ggplot(aes(word_count/total_n, fill = season)) + 
+  geom_histogram(show.legend = FALSE) + 
+  facet_wrap(~season, scales = "free_y") + 
+  theme_bw()
+
+word_freq <- ep_words %>% 
+  group_by(season) %>% 
+  mutate(rank = row_number(),
+         term_freq = word_count/total_n)
+
+ggplot(word_freq, aes(rank, term_freq, color = season)) + 
+  geom_line() + 
+  theme_bw() + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+
+imp_words <- ep_words %>% 
+  bind_tf_idf(word, season, word_count) %>% 
+  select(-total_n) %>% 
+  arrange(desc(tf_idf)) %>% 
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(season) %>% 
+  top_n(15) %>% 
+  # mutate(word = fct_relevel(word, tf_idf)) %>% 
+  ungroup()
+
+imp_words %>% 
+  ggplot(aes(word, tf_idf, fill = season)) + 
+  facet_wrap(~season, scales = "free_y") + 
+  geom_bar(stat = "identity") +
+  coord_flip() + 
+  theme_bw(base_size = 10)
+  
