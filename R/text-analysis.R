@@ -142,3 +142,36 @@ imp_words %>%
   coord_flip() + 
   theme_bw(base_size = 10)
   
+
+
+# looking at epsiode n-grams
+ep_bigrams <- episode_scripts %>% 
+  unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+ep_bigrams %>% 
+  count(bigram, sort = TRUE)
+
+ep_bigrams %>% 
+  separate(bigram, c("word_1", "word_2"), sep = " ") %>% 
+  filter(!word_1 %in% stop_words$word) %>% 
+  filter(!word_2 %in% stop_words$word) %>% 
+  unite(bigram, word_1, word_2, sep = " ") %>% 
+  # unite(episode, season, episode_num, sep = "_") %>% 
+  count(bigram, season) %>% 
+  bind_tf_idf(bigram, season, n) %>% 
+  arrange(desc(tf_idf)) %>% 
+  top_n(20, tf_idf)
+
+
+ep_trigrams <- episode_scripts %>%
+  unnest_tokens(trigram, text, token = "ngrams", n = 3)
+
+ep_trigrams %>% 
+  count(trigram, sort = TRUE)
+
+ep_trigrams %>% 
+  separate(trigram, c("word_1", "word_2", "word_3"), sep = " ") %>% 
+  filter(!word_1 %in% stop_words$word,
+         !word_2 %in% stop_words$word,
+         !word_3 %in% stop_words$word) %>% 
+  count(word_1, word_2, word_3, season, sort = TRUE )
